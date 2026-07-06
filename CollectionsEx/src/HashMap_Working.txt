@@ -1,0 +1,168 @@
+🧠 2. Internal Data Structure
+
+Internally, HashMap uses:
+
+Array + LinkedList (+ Red-Black Tree from Java 8)
+
+
+That means:
+
+It has an array (called table[]) of buckets.
+
+Each bucket stores a linked list (or tree) of entries.
+
+Each entry (or node) stores:
+(key, value, hash, next)
+
+⚙️ 3. Hashing Concept
+
+When you put an element in a HashMap, it uses the key’s hash code to decide where to store it.
+
+Step 1: Calculate hash value
+
+int hash = key.hashCode();
+
+
+Step 2: Find the bucket index
+
+int index = (n - 1) & hash;
+
+
+(where n = size of internal array)
+
+This operation ensures the index is within array bounds.
+
+🧩 4. What Happens When You Do put(K key, V value)?
+
+Let’s break it down 👇
+
+🪜 Step-by-step:
+
+Hash code is calculated using key’s hashCode().
+
+Hash is processed by an internal function to reduce collisions.
+
+Index in the array is found using (n - 1) & hash.
+
+If no entry exists at that index → create a new Node and insert.
+
+If entry already exists → it means hash collision occurred.
+
+Now Java checks:
+
+If the key already exists → overwrite value.
+
+Else → add new node at the end of the list.
+
+If a bucket’s list becomes too long (≥ 8) → it is converted into a Red-Black Tree (Java 8+).
+
+If the load factor (default 0.75) is exceeded → resize (rehash).
+
+🧮 Example:
+Map<String, Integer> map = new HashMap<>();
+map.put("A", 1);
+map.put("B", 2);
+map.put("C", 3);
+
+
+Internally:
+
+table[5] → Node(A,1)
+table[9] → Node(B,2)
+table[2] → Node(C,3)
+
+
+(indexes depend on hash values)
+
+🧩 5. What Happens When You Call get(K key)?
+Steps:
+
+Calculate hash of the key.
+
+Find index using (n - 1) & hash.
+
+Go to that bucket.
+
+Traverse linked list / tree in that bucket:
+
+Compare keys using equals().
+
+If found → return value.
+
+If not found → return null.
+
+🌲 6. Why Red-Black Tree Was Introduced (Java 8)
+
+Before Java 8:
+
+Collisions caused long linked lists.
+
+Worst-case complexity = O(n).
+
+From Java 8 onwards:
+
+If more than 8 elements in a bucket → it converts to Red-Black Tree.
+
+Lookup becomes O(log n) instead of O(n).
+
+⚖️ 7. Load Factor and Rehashing
+🔸 Load Factor = 0.75 (default)
+
+This means when the map is 75% full, it automatically resizes (doubles capacity).
+
+Example:
+
+Initial capacity = 16
+
+Load factor = 0.75
+→ Threshold = 16 × 0.75 = 12
+When 12 elements are inserted → capacity becomes 32
+
+🔸 Rehashing:
+
+When resizing, all keys are re-mapped to new bucket indexes because the array size changes.
+
+💥 8. Collision Handling Summary
+Step	Description
+1	Hash collision occurs when two keys have the same index
+2	HashMap uses Linked List or Tree to store both
+3	If keys are equal (equals() returns true), value is replaced
+4	If not equal, node is appended or inserted in tree
+⚡ 9. Internal Classes and Methods (simplified)
+
+Internally:
+
+static class Node<K,V> implements Map.Entry<K,V> {
+    final int hash;
+    final K key;
+    V value;
+    Node<K,V> next;
+}
+
+
+Important methods:
+
+putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict)
+
+resize()
+
+hash(Object key)
+
+🔹 10. Key Notes
+Concept	Description
+Thread-safety	❌ Not synchronized (use ConcurrentHashMap instead)
+Null keys/values	✅ 1 null key, many null values
+Order	❌ No guaranteed order
+Best case complexity	O(1)
+Worst case (pre–Java 8)	O(n)
+Worst case (Java 8+)	O(log n)
+🧭 Visualization
+             HashMap (table[])
+                  ↓
+    +-------------------------------------+
+    | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | ... |
+    +-------------------------------------+
+                ↓
+             LinkedList / Tree of Nodes
+                ↓
+      [Key, Value, Hash, Next]
